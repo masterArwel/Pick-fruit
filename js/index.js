@@ -1,222 +1,89 @@
+window.Promise = Promise;
+// require('jquery');
 
-var shell = document.getElementById("mian");
-var w = $(document).width();
-var dw = w / 20;
-var mainh = $(document).height();
-$(function() {
-    var h = $(document).height();
-    var dwc = $(document).width();
-
-    console.log(dwc);
-
-    //**结束得分提示页面*/.endmain endcten
-    $('.endmain').css('height', h + 'px');
-    $('.endmain').css('background-size', dwc + 'px ' + h + 'px');
-
-    $('.endcten').css('height', (parseInt(h) * 0.253) + 'px');
-    $('.endcten').css('width', ((parseInt(h) * 0.253) / 0.6) + 'px');
-    $('.endcten').css('background-size', ((parseInt(h) * 0.253) / 0.6) + 'px ' + (parseInt(h) * 0.253) + 'px');
-    $('.endcten').css('margin-top', (parseInt(h) * 0.1) + 'px');
-    $('.endcten').css('margin-left', (parseInt(dwc) * 0.1595) + 'px');
-
-    $('.bttret').css('margin-top', (parseInt(h) * 0.43) + 'px'); //按钮再来一次位置
-    $('.bttret img').css('height', (parseInt(h) * 0.0813) + 'px'); //按钮再来一次高度
-    $('.bttret img').css('width', ((parseInt(h) * 0.0813) * 2.7735) + 'px'); //按钮再来一次宽度
-
-    $('.bttret1').css('margin-top', (parseInt(h) * 0.5284) + 'px'); //按钮再退出位置
-    $('.bttret1 img').css('height', (parseInt(h) * 0.0813) + 'px'); //按钮退出高度
-    $('.bttret1 img').css('width', ((parseInt(h) * 0.0813) * 2.7735) + 'px'); //按钮退出宽度
-    //**结束得分提示页面*/
-
-    //**调整开始按图层*/.shellstart{.start
-    var hw, th, stth, sth;
-    hw = parseInt(h) * 0.36;
-    th = parseInt(h) * 0.3;
-    stth = hw * 0.7;
-    sth = hw * 0.2;
-    $('.shellstart').css('height', hw + 'px');
-    $('.shellstart').css('width', hw + 'px');
-    $('.shellstart').css('background-size', hw + 'px ' + hw + 'px');
-    $('.shellstart').css('margin-top', th + 'px');
-    $('.start').css('margin-top', stth + 'px');
-    $('.start').css('height', sth + 'px');
-    //**调整开始按图层*/
-
-    $('.mian').css('height', (h - 100) + 'px');
-    //$('.bott').css('height',((h-6)*0.2)+'px');
-    //$('.person').css('height',((h-6)*0.2)+'px');
-    $('.bott').css('height', '150px');
-    $('.person').css('height', '100px');
-
-
-
-
-
-
-
-    $(".bott_left").bind("touchstart", function() { //人物向左移动
-        $('.person').attr('i', '1');
-        var set = setInterval(function() {
-            var p = $('.person').attr('i');
-            if (p == '1') { //判断手机触摸
-                var person_left = $('.person').css('margin-left');
-                person_left = parseInt(person_left);
-                if (person_left > 0) { //判断人物是否移动出边界
-                    $('.person').css('margin-left', (person_left - 2) + 'px');
-                }
+$(function () {
+	// body...
+var playGame = async () => {
+    let gameCont = $('.gameWarp'),
+        bot = $('.bottle'),
+        bowl = $('.pot'),
+        total = 0,
+        gameWidth = gameCont.width(),
+        bowlWidth = bowl.width(),
+        minX,
+        maxX,
+        x,
+        distance,
+        creatLeft,
+        thisFood = [],
+        time = 3000,
+        foods = ['img/pizza.png', 'img/red-wine.png', 'img/rose.png', 'img/steak.png', 'img/desserts.png'];
+    var play = setInterval(function(){
+        thisFood = foods[Math.floor(Math.random() * foods.length)];
+        creatFood();
+        time -= 100; // 下落时间每次减少 100ms， 以此来控制速度
+    },1000);
+// 创建降落的物品
+    var creatFood = function() {
+        var creat = $('<div></div>').css({'position': 'absolute'}).html(`<img src="${thisFood}">`);
+        var creatLeft = Math.ceil(Math.random() * gameWidth - creat.width() - 50);
+        (creatLeft < 0) ? creatLeft = 0 : creatLeft;
+        creat.attr('status','reday').css({'left': creatLeft}, {'top': -creat.height()});
+    // 判断是否接到
+        setInterval(function(){
+            if(creat.attr('status') === 'reday'){
+                creat.appendTo(gameCont).css({'width': '10%'}).animate({'top':gameCont.height()},time,function(){
+                    $(this).remove();
+                });
+                creat.attr('status','falling');
             }
-            if (p == '0') {
-                clearInterval(set);
+            // 接到物品 个数加一
+            if(creat.attr('status') == 'falling' && bowl.intersection(creat)){
+                creat.attr('status','out');
+                creat.addClass('hide')
+                total += 1; //累计分数
+                console.log(total);
+                $('.nowcount').html(total);
             }
-        }, 5);
-    });
-
-    $(".bott_left").bind("touchend", function() { //人物向左移动停止，手触摸离开就改变状态
-        $('.person').attr('i', '0');
-    });
-
-
-    $(".bott_rihgt").bind("touchstart", function() { //人物向右移动
-        $('.person').attr('i', '1');
-        var set = setInterval(function() {
-            var p = $('.person').attr('i');
-            if (p == '1') {
-                var person_left = $('.person').css('margin-left');
-                person_left = parseInt(person_left);
-                if (person_left < (w - 96)) { //判断人物是否移动出边界
-                    $('.person').css('margin-left', (person_left + 2) + 'px');
-                }
+            // 未接到  游戏结束
+            if(creat.attr('status') == 'falling' && creat.position().top > bowl.position().top){
+                creat.addClass('hide');
+                console.log('game over!');
+                clearInterval(play);
             }
-            if (p == '0') {
-                clearInterval(set);
+        },100)
+    }  
+// 接物盒子移动
+    gameCont.on('touchmove',function(event){
+        event.preventDefault();
+        minX = gameCont.offset().left;
+        x = event.originalEvent.targetTouches[0].pageX; // 触点坐标
+            distance = x - minX; //窗口的距离
+            if(distance < bowlWidth/2){
+                bot.css('left',0);
+                bowl.css('left',0);
+            }else if(distance > gameWidth - bowlWidth/2){
+                bot.css('left',gameWidth - bowlWidth);
+                bowl.css('left',gameWidth - bowlWidth);
+            }else{
+                bot.css('left',x - minX - bowlWidth/2);
+                bowl.css('left',x - minX - bowlWidth/2);
             }
-        }, 5);
-    });
-
-    $(".bott_rihgt").bind("touchend", function() { //人物向右移动停止
-        $('.person').attr('i', '0');
-    });
-
-
-});
-
-
-
-
-
-//**水果随机出现位置*/
-function ran() { //随机1到20的数的函数
-    var kwc = Math.ceil(Math.random() * 20);
-    return kwc;
+        }); 
 }
-//**水果下落函数*/
-function fall() {
-    var s, der, ki, col;
-    s = ran();
-    der = ran();
-    if (der == 5 || der == 10 || der == 15) {
-        ki = '0'; //0就扣分
-        col = 'url(img/orange1.png)';
-        
-    } else {
-        ki = '1'; //如果是1就记分
-        col = 'url(img/orange.png)';
-    }
-
-    var ml = dw * s;
-    if (ml > (w - 30)) { //判断右边果子是否超出边界
-        ml = ml - 50;
-    }
-
-    var myDate = new Date();
-    var myid = myDate.getTime();
-
-    var html = shell.innerHTML;
-    shell.innerHTML = html + '<div ki="' + ki + '" id="' + myid + '" style="position:absolute;z-index: 0;width: 30px;margin-left: ' + ml + 'px;margin-top: 0px;height: 30px;background: ' + col + ';"></div>';
-    var fallset = setInterval(function() {
-        var obsg = document.getElementById(myid); //获取下落水果对象
-
-        var vt = obsg.style.marginTop;
-        vt = parseInt(vt);
-        obsg.style.marginTop = (vt + 1) + 'px';
-        if (vt > mainh - 95) {
-            var person = $('#person').css('margin-left'); //获取人物的位置
-            person = parseInt(person);
-            if (ml > person && ml < (person + 70)) { //判断接没有接住
-                //**记录分数*/
-                var ki = $('#' + myid).attr('ki');
-                var fen = $('#person').attr('fens');
-                var kiy = $('#suju').attr('kiy');
-                fen = parseInt(fen);
-
-                if (kiy == '1') { //判断游戏是否结束没有
-                    if (ki == '1') { //判断是否该加减分数
-                        fen = fen + 1; //加分
-                    } else {
-                        fen = fen - 2; //减分
-                    }
-                }
-
-                $('#person').attr('fens', fen);
-                $('#czsl').html(fen); //分数记录
-                $('#endfeng').html(fen);
-
-                //**记录分数*/
-                console.log(fen);
-                clearInterval(fallset);
-                obsg.remove();
+//与容器交错
+    $.prototype.intersection = function(obj) {
+        var self = $(this);
+        if (obj.position().top + obj.height() >= self.position().top) {
+            if ((obj.position().left + obj.width()) >= self.position().left && obj.position().left <= self.position().left + self.width()) {
+                return true;
             }
         }
-        if (vt > mainh - 30) {
-            clearInterval(fallset);
-            obsg.remove();
-        }
-    }, 10);
+        return false;
+    };
 
-}
+    playGame();
+})
 
 
 
-
-function allrun() { //游戏总运行函数
-    var endrun = setInterval(function() { //定时游戏结束
-        $('#suju').attr('kiy', '0');
-        $('#ing').css('display', 'none');
-        $('#end').css('display', 'block');
-        console.log('游戏结束');
-        clearInterval(endrun);
-    }, 61000);
-
-    var time1 = setInterval(function() { //时间跳动表
-        var pd = $('#suju').attr('kiy');
-        if (pd == '0') {
-            clearInterval(time1);
-        } else {
-            var times = $('#time1').html();
-            times = parseInt(times);
-            times = times - 1;
-            $('#time1').html(times);
-        }
-
-
-    }, 1000);
-
-
-    var run = setInterval(function() { //游戏运行函数
-        var kiy = $('#suju').attr('kiy');
-        if (kiy == '1') {
-            fall();
-        } else {
-            clearInterval(run);
-        }
-    }, 1000);
-}
-
-function reten() {
-    window.location.reload();
-}
-
-function funrun() {
-    $('.beijinzez').css('display', 'none');
-    allrun();
-}
